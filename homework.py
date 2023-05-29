@@ -45,11 +45,10 @@ def check_tokens():
 def send_message(bot, message):
     """Отправка сообщения в Telegram чат."""
     try:
+        logger.debug(f'Бот отправил сообщение {message}')
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        logger.info(f'Сообщение отправлено: {message}')
-    except telegram.TelegramError as telegram_error:
-        logger.error(
-            f'Сообщение не отправлено в Telegram чат: {telegram_error}')
+    except Exception as error:
+        logger.error(error)
 
 
 def get_api_answer(timestamp):
@@ -73,35 +72,32 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет API на соответствие."""
-    if response.get('homeworks') is None:
-        code_api_msg = (
-            'Ошибка ключа homeworks или response'
-            'имеет неправильное значение.')
-        logger.error(code_api_msg)
-        raise KeyError(code_api_msg)
-    if response['homeworks'] == []:
-        return {}
-    status = response['homeworks'][0].get('status')
-    if status not in HOMEWORK_VERDICTS:
-        code_api_msg = f'Ошибка недокументированный статус: {status}'
-        logger.error(code_api_msg)
-        raise LookupError(code_api_msg)
-    return response['homeworks'][0]
+    if not isinstance(response, dict):
+        raise TypeError('Ожидаемый тип данных — словарь!')
+    if 'homeworks' not in response and 'current_date' not in response:
+        raise KeyError('В ответе от API отсутствует ключ homeworks')
+    homeworks = response.get('homeworks')
+    if not isinstance(homeworks, list):
+        raise TypeError('Ожидаемый тип данных — список!')
+    return homeworks
 
 
 def parse_status(homework):
     """Извлечение статуса домашней работы."""
-    homework_status = homework.get('status')
-    homework_name = homework.get('homework_name')
-    verdict = HOMEWORK_VERDICTS[homework_status]
-    if not verdict:
-        message_verdict = 'Такого статуса нет в словаре'
-        raise KeyError(message_verdict)
+    if not isinstance(homework, dict):
+        raise TypeError('Ожидаемый тип данных — словарь!')
     if 'homework_name' not in homework:
-        raise KeyError('В ответе отсуствует ключ homework_name')
+        raise KeyError('Не найден ключ homework_name!')
+    if 'status' not in homework:
+        raise KeyError('Не найден ключ status!')
+    homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
     if homework_status not in HOMEWORK_VERDICTS:
         raise ValueError(f'Неизвестный статус работы - {homework_status}')
-    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    return ('Изменился статус проверки работы "{homework_name}". {verdict}'
+            ).format(homework_name=homework_name,
+                     verdict=HOMEWORK_VERDICTS.get(homework_status)
+                     )
 
 
 def main():
