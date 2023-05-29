@@ -73,22 +73,20 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет API на соответствие."""
-    logger.info('Ответ от сервера получен')
-    homeworks_response = response['homeworks']
-    logger.info('Список домашних работ получен')
-    if not homeworks_response:
-        message_status = ('Отсутствует статус homeworks')
-        raise LookupError(message_status)
-    if not isinstance(homeworks_response, list):
-        message_list = ('Невернй тип входящих данных')
-        raise TypeError(message_list)
-    if 'homeworks' not in response.keys():
-        message_homeworks = ('Ключ "homeworks" отсутствует в словаре')
-        raise KeyError(message_homeworks)
-    if 'current_date' not in response.keys():
-        message_current_date = ('Ключ "current_date" отсутствует в словаре')
-        raise KeyError(message_current_date)
-    return homeworks_response
+    if response.get('homeworks') is None:
+        code_api_msg = (
+            'Ошибка ключа homeworks или response'
+            'имеет неправильное значение.')
+        logger.error(code_api_msg)
+        raise KeyError(code_api_msg)
+    if response['homeworks'] == []:
+        return {}
+    status = response['homeworks'][0].get('status')
+    if status not in HOMEWORK_VERDICTS:
+        code_api_msg = f'Ошибка недокументированный статус: {status}'
+        logger.error(code_api_msg)
+        raise LookupError(code_api_msg)
+    return response['homeworks'][0]
 
 
 def parse_status(homework):
