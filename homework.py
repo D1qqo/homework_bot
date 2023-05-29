@@ -29,7 +29,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     filename='program.log',
     format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-    encoding = 'UTF-8',
+    encoding='UTF-8',
     filemode='w'
 )
 
@@ -54,11 +54,11 @@ def send_message(bot, message):
 
 def get_api_answer(timestamp):
     """Запрос к API сервиса."""
-    time = timestamp or int(time.time())
+    times = timestamp or int(time.time())
     params = {
-        'url':ENDPOINT,
-        'headers':HEADERS,
-        'params': {'from_date': time}
+        'url': ENDPOINT,
+        'headers': HEADERS,
+        'params': {'from_date': times}
     }
     try:
         response = requests.get(**params)
@@ -118,11 +118,13 @@ def main():
             homework = check_response(response)[0]
             if homework:
                 message = parse_status(homework)
-                current_report[response.get("homework_name")] = response.get("status")
+                current_report[
+                    response.get("homework_name")] = response.get("status")
                 if current_report != prev_report:
                     send_message(bot, message)
                     prev_report = current_report.copy()
-                    current_report[response.get("homework_name")] = response.get("status")
+                    current_report[
+                        response.get("homework_name")] = response.get("status")
             timestamp = response.get("current_date")
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
