@@ -73,20 +73,20 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет API на соответствие."""
-    logger.info("Ответ от сервера получен")
+    logger.info('Ответ от сервера получен')
     homeworks_response = response['homeworks']
-    logger.info("Список домашних работ получен")
+    logger.info('Список домашних работ получен')
     if not homeworks_response:
-        message_status = ("Отсутствует статус homeworks")
+        message_status = ('Отсутствует статус homeworks')
         raise LookupError(message_status)
     if not isinstance(homeworks_response, list):
-        message_list = ("Невернй тип входящих данных")
+        message_list = ('Невернй тип входящих данных')
         raise TypeError(message_list)
     if 'homeworks' not in response.keys():
-        message_homeworks = 'Ключ "homeworks" отсутствует в словаре'
+        message_homeworks = ('Ключ "homeworks" отсутствует в словаре')
         raise KeyError(message_homeworks)
     if 'current_date' not in response.keys():
-        message_current_date = 'Ключ "current_date" отсутствует в словаре'
+        message_current_date = ('Ключ "current_date" отсутствует в словаре')
         raise KeyError(message_current_date)
     return homeworks_response
 
@@ -96,6 +96,9 @@ def parse_status(homework):
     homework_status = homework.get('status')
     homework_name = homework.get('homework_name')
     verdict = HOMEWORK_VERDICTS[homework_status]
+    if not verdict:
+        message_verdict = 'Такого статуса нет в словаре'
+        raise KeyError(message_verdict)
     if 'homework_name' not in homework:
         raise KeyError('В ответе отсуствует ключ homework_name')
     if homework_status not in HOMEWORK_VERDICTS:
