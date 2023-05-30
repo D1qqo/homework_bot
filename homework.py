@@ -1,10 +1,13 @@
-import telegram
-import time
-import requests
-import logging
 import os
+import time
 import sys
+import logging
+import json
 from http import HTTPStatus
+
+import telegram
+import requests
+from telegram import TelegramError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,7 +50,7 @@ def send_message(bot, message):
     try:
         logger.debug(f'Бот отправил сообщение {message}')
         bot.send_message(TELEGRAM_CHAT_ID, message)
-    except Exception as error:
+    except TelegramError as error:
         logger.error(error)
 
 
@@ -61,13 +64,16 @@ def get_api_answer(timestamp):
     }
     try:
         response = requests.get(**params)
-    except Exception as error:
-        logger.error(f'Ошибка при запросе к API сервиса: {error}')
+    except requests.exceptions.RequestException as error:
+        return SystemExit(error)
     else:
         if response.status_code != HTTPStatus.OK:
             error_message = 'Статус страницы не равен 200'
             raise requests.HTTPError(error_message)
-        return response.json()
+        try:
+            return response.json()
+        except json.decoder.JSONDecodeError:
+            return ("N'est pas JSON")
 
 
 def check_response(response):
@@ -112,17 +118,19 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            homework = check_response(response)[0]
-            if homework:
-                message = parse_status(homework)
-                current_report[
-                    response.get("homework_name")] = response.get("status")
-                if current_report != prev_report:
-                    send_message(bot, message)
-                    prev_report = current_report.copy()
+            homeworks = check_response(response)
+            for homework in homeworks:
+                if homework:
+                    message = parse_status(homework)
                     current_report[
                         response.get("homework_name")] = response.get("status")
-            timestamp = response.get("current_date")
+                    if current_report != prev_report:
+                        send_message(bot, message)
+                        prev_report = current_report.copy()
+                        current_report[
+                            response.get("homework_name")
+                        ] = response.get("status")
+                timestamp = response.get("current_date")
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
