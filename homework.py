@@ -3,6 +3,7 @@ import time
 import sys
 import logging
 import json
+from json import JSONDecodeError
 from http import HTTPStatus
 
 import telegram
@@ -72,8 +73,8 @@ def get_api_answer(timestamp):
             raise requests.HTTPError(error_message)
         try:
             return response.json()
-        except json.decoder.JSONDecodeError:
-            raise ("N'est pas JSON")
+        except json.decoder.JSONDecodeError as json_error:
+            raise JSONDecodeError(f'Не является JSON: {json_error}')
 
 
 def check_response(response):
