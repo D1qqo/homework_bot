@@ -73,7 +73,7 @@ def get_api_answer(timestamp):
         try:
             return response.json()
         except json.decoder.JSONDecodeError:
-            return ("N'est pas JSON")
+            raise ("N'est pas JSON")
 
 
 def check_response(response):
