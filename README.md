@@ -39,7 +39,7 @@ python -m venv venv
 ```
 Активировать виртуальное окружение для проекта:
 
-# для OS Lunix и MacOS
+## для OS Lunix и MacOS
 ```
 source venv/bin/activate
 ```
@@ -72,12 +72,12 @@ TELEGRAM_CHAT_ID = 'xxx'
 ```
 Запустить проект локально:
 
-# для OS Lunix и MacOS
+## для OS Lunix и MacOS
 ```
 python homework_bot.py
 ```
 
-# для OS Windows
+## для OS Windows
 ```
 python3 homework_bot.py
 ```
